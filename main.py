@@ -56,20 +56,21 @@ def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
     for count,val in enumerate(initialArray):
         y0 = val
         k1 = diffArrayFunc(count,**diffArrayFuncArgs)
-        # y1Idx = findNearest(gridArray,(y0 + delta/2 * k1))[0]
         y1 = (y0 + delta/2 * k1)
-        y1Idx = findNearest(initialArray,y1,count)[0]
+        y1Idx = findNearest(gridArray,y1)[0]
+        # y1Idx = findNearest(initialArray,y1,count)[0]
         k2 = diffArrayFunc(y1Idx,**diffArrayFuncArgs)
-        # y2Idx = findNearest(gridArray,(y0 + delta/2 * k2))[0]
         y2 = (y0 + delta/2 * k2)
-        y2Idx = findNearest(initialArray,y2,y1Idx)[0]
+        y2Idx = findNearest(gridArray,y2)[0]
+        # y2Idx = findNearest(initialArray,y2,y1Idx)[0]
         k3 = diffArrayFunc(y2Idx,**diffArrayFuncArgs)
-        # y3Idx = findNearest(gridArray,(y0 + delta * k3))[0]
         y3 = (y0 + delta * k3)
-        y3Idx = findNearest(initialArray,y3,y2Idx)[0]
+        y3Idx = findNearest(gridArray,y3)[0]
+        # y3Idx = findNearest(initialArray,y3,y2Idx)[0]
         k4 = diffArrayFunc(y3Idx,**diffArrayFuncArgs)
         y4 = y0 + (k1 + 2*k2+ 2*k3 + k4)*delta/6
-        finalArray[count] = y0 + delta*k1
+        # finalArray[count] = y0 + delta*k1
+        finalArray[count] = y4
     return finalArray
         
 
@@ -77,15 +78,15 @@ def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
 #grid setup
 hx = 0.1
 ht = 0.05
-xLow = 0
-xHigh = 20
+xLow = -5
+xHigh = 5
 tLow = 0
-tHigh = 5
+tHigh = 10
 xGrid = np.arange(xLow,xHigh+hx,hx)
 tGrid = np.arange(tLow,tHigh,ht)
 
 #initial values of the field phi and simulation variables psi and pi
-initialPhi = np.exp(-(xGrid-10)**2)
+initialPhi = np.exp(-(xGrid)**2)
 initialDtPhi = np.zeros(xGrid.shape)
 initialDxPhi = spatialDerivCalc(initialPhi,hx)
 
@@ -124,14 +125,15 @@ for count,tVal in enumerate(tGrid):
     phiArray[count+1] = rk4(phiArray[count],xGrid,ht,derivCalc,type='Phi',piArray=piArray[count])
 
 for count,psiVals in enumerate(phiArray):
-    plt.figure(count)
+    fig = plt.figure(count)
     ax = plt.gca()
     plt.xlabel('x')
     plt.ylabel('Phi')
-    ax.set_ylim([0,np.max(phiArray)])
+    ax.set_ylim([-np.max(phiArray),np.max(phiArray)])
     plt.plot(xGrid,psiVals,label="t="+str(tGrid[count]))
     plt.legend()
     plt.savefig('Images/frame_%04d.png' %count)
+    plt.close(fig)
 # plt.show()
 
 # y0=3.0
