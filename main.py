@@ -69,8 +69,8 @@ def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
         # y3Idx = findNearest(initialArray,y3,y2Idx)[0]
         k4 = diffArrayFunc(y3Idx,**diffArrayFuncArgs)
         y4 = y0 + (k1 + 2*k2+ 2*k3 + k4)*delta/6
-        # finalArray[count] = y0 + delta*k1
-        finalArray[count] = y4
+        finalArray[count] = y0 + delta*k1
+        # finalArray[count] = y4
     return finalArray
         
 
@@ -129,7 +129,7 @@ for count,psiVals in enumerate(phiArray):
     ax = plt.gca()
     plt.xlabel('x')
     plt.ylabel('Phi')
-    ax.set_ylim([-np.max(phiArray),np.max(phiArray)])
+    ax.set_ylim([0,np.max(phiArray)])
     plt.plot(xGrid,psiVals,label="t="+str(tGrid[count]))
     plt.legend()
     plt.savefig('Images/frame_%04d.png' %count)
