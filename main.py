@@ -2,31 +2,31 @@ import numpy as np
 from matplotlib import pyplot as plt
 import copy
 
-#finds and returns index and value of the array element closest to parameter
-def findNearest(array, value,startIdx=0):
-    array = np.asarray(array)
-    bestValue = abs(array[startIdx] - value)
-    # print(startIdx)
-    bestIdx = startIdx
-    prevIdx = startIdx-1
-    nextIdx = startIdx+1
-    # print(prevIdx)
-    while(prevIdx >=0 or nextIdx<len(array)):
-        if(prevIdx>=0):
-            prevVal = array[prevIdx]
-            if(abs(prevVal-value) < bestValue):
-                # print('found better one')
-                bestValue = abs(prevVal-value)
-                bestIdx = prevIdx
-            prevIdx -= 1
-        if(nextIdx<len(array)):
-            nextVal = array[nextIdx]
-            if(abs(nextVal-value) < bestValue):
-                bestValue = abs(nextVal-value)
-                bestIdx = nextIdx
-            nextIdx += 1
+# #finds and returns index and value of the array element closest to parameter
+# def findNearest(array, value,startIdx=0):
+#     array = np.asarray(array)
+#     bestValue = abs(array[startIdx] - value)
+#     # print(startIdx)
+#     bestIdx = startIdx
+#     prevIdx = startIdx-1
+#     nextIdx = startIdx+1
+#     # print(prevIdx)
+#     while(prevIdx >=0 or nextIdx<len(array)):
+#         if(prevIdx>=0):
+#             prevVal = array[prevIdx]
+#             if(abs(prevVal-value) < bestValue):
+#                 # print('found better one')
+#                 bestValue = abs(prevVal-value)
+#                 bestIdx = prevIdx
+#             prevIdx -= 1
+#         if(nextIdx<len(array)):
+#             nextVal = array[nextIdx]
+#             if(abs(nextVal-value) < bestValue):
+#                 bestValue = abs(nextVal-value)
+#                 bestIdx = nextIdx
+#             nextIdx += 1
 
-    return (bestIdx,array[bestIdx])
+#     return (bestIdx,array[bestIdx])
 
 #second order derivative calculator. returns entire array with derivative at each point.
 def spatialDerivCalc(variableArray,delta):
@@ -75,31 +75,31 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
     return finalPi,finalPsi,finalPhi
 
 
-#performs a single rk4 step for an array of values. diffArrayFunc is a function passed that
-#computes the derivative (discretized or continuous) by accepting the grid and the target value it should check
+# #performs a single rk4 step for an array of values. diffArrayFunc is a function passed that
+# #computes the derivative (discretized or continuous) by accepting the grid and the target value it should check
 
-def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
-    # finalArray = np.zeros(len(initialArray))
-    finalArray = copy.copy(initialArray)
-    for count,val in enumerate(initialArray):
-        y0 = val
-        k1 = diffArrayFunc(count,**diffArrayFuncArgs)
-        y1 = (y0 + delta/2 * k1)
-        # y1Idx = findNearest(gridArray,y1)[0]
-        y1Idx = findNearest(initialArray,y1,count)[0]
-        k2 = diffArrayFunc(y1Idx,**diffArrayFuncArgs)
-        y2 = (y0 + delta/2 * k2)
-        # y2Idx = findNearest(gridArray,y2)[0]
-        y2Idx = findNearest(initialArray,y2,y1Idx)[0]
-        k3 = diffArrayFunc(y2Idx,**diffArrayFuncArgs)
-        y3 = (y0 + delta * k3)
-        # y3Idx = findNearest(gridArray,y3)[0]
-        y3Idx = findNearest(initialArray,y3,y2Idx)[0]
-        k4 = diffArrayFunc(y3Idx,**diffArrayFuncArgs)
-        y4 = y0 + (k1 + 2*k2+ 2*k3 + k4)*delta/6
-        finalArray[count] = y0 + delta*k1
-        # finalArray[count] = y4
-    return finalArray
+# def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
+#     # finalArray = np.zeros(len(initialArray))
+#     finalArray = copy.copy(initialArray)
+#     for count,val in enumerate(initialArray):
+#         y0 = val
+#         k1 = diffArrayFunc(count,**diffArrayFuncArgs)
+#         y1 = (y0 + delta/2 * k1)
+#         # y1Idx = findNearest(gridArray,y1)[0]
+#         y1Idx = findNearest(initialArray,y1,count)[0]
+#         k2 = diffArrayFunc(y1Idx,**diffArrayFuncArgs)
+#         y2 = (y0 + delta/2 * k2)
+#         # y2Idx = findNearest(gridArray,y2)[0]
+#         y2Idx = findNearest(initialArray,y2,y1Idx)[0]
+#         k3 = diffArrayFunc(y2Idx,**diffArrayFuncArgs)
+#         y3 = (y0 + delta * k3)
+#         # y3Idx = findNearest(gridArray,y3)[0]
+#         y3Idx = findNearest(initialArray,y3,y2Idx)[0]
+#         k4 = diffArrayFunc(y3Idx,**diffArrayFuncArgs)
+#         y4 = y0 + (k1 + 2*k2+ 2*k3 + k4)*delta/6
+#         finalArray[count] = y0 + delta*k1
+#         # finalArray[count] = y4
+#     return finalArray
         
 
 
@@ -131,15 +131,15 @@ phiArray[0] = initialPhi
 psiArray[0] = initialPsi
 piArray[0] = initialPi
 
-def derivCalc(idx,**kwargs):
-    #if type is Psi, send the value of time derivative of psi, which is the spatial derivative of pi and
-    #vice versa.
-    if(kwargs['type']=='Pi'):
-        return kwargs['dxPsi'][idx]
-    elif(kwargs['type']=='Psi'):
-        return kwargs['dxPi'][idx]
-    elif(kwargs['type']=='Phi'):
-        return kwargs['piArray'][idx]
+# def derivCalc(idx,**kwargs):
+#     #if type is Psi, send the value of time derivative of psi, which is the spatial derivative of pi and
+#     #vice versa.
+#     if(kwargs['type']=='Pi'):
+#         return kwargs['dxPsi'][idx]
+#     elif(kwargs['type']=='Psi'):
+#         return kwargs['dxPi'][idx]
+#     elif(kwargs['type']=='Phi'):
+#         return kwargs['piArray'][idx]
 
 for count,tVal in enumerate(tGrid):
     # dxPsi = spatialDerivCalc(psiArray[count],hx)
