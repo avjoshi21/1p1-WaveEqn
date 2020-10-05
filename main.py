@@ -60,9 +60,17 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
     k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX)
     k2Phi = pi + deltaT/2 * k1Pi
 
-    finalPi = finalPi + deltaT*k2Pi
-    finalPsi = finalPsi + deltaT*k2Psi
-    finalPhi = finalPhi + deltaT*k2Phi
+    k3Pi = spatialDerivCalc(psi + deltaT/2 * k2Psi,deltaX)
+    k3Psi = spatialDerivCalc(pi + deltaT/2 * k2Pi,deltaX)
+    k3Phi = pi + deltaT/2 * k2Pi
+
+    k4Pi = spatialDerivCalc(psi + deltaT * k3Psi,deltaX)
+    k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX)
+    k4Phi = pi + deltaT * k3Pi
+
+    finalPi = finalPi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
+    finalPsi = finalPsi + 1/6*deltaT*(k1Psi + 2*k2Psi + 2*k3Psi + k4Psi)
+    finalPhi = finalPhi + 1/6*deltaT*(k1Phi + 2*k2Phi + 2*k3Phi + k4Phi)
 
     return finalPi,finalPsi,finalPhi
 
@@ -106,7 +114,7 @@ xGrid = np.arange(xLow,xHigh+hx,hx)
 tGrid = np.arange(tLow,tHigh,ht)
 
 #initial values of the field phi and simulation variables psi and pi
-initialPhi = np.exp(-(xGrid)**2)
+initialPhi = np.exp(-((xGrid-1)/0.5)**2)
 initialDtPhi = np.zeros(xGrid.shape)
 initialDxPhi = spatialDerivCalc(initialPhi,hx)
 
@@ -134,8 +142,8 @@ def derivCalc(idx,**kwargs):
         return kwargs['piArray'][idx]
 
 for count,tVal in enumerate(tGrid):
-    dxPsi = spatialDerivCalc(psiArray[count],hx)
-    dxPi = spatialDerivCalc(piArray[count],hx)
+    # dxPsi = spatialDerivCalc(psiArray[count],hx)
+    # dxPi = spatialDerivCalc(piArray[count],hx)
     # if count == 1:
     #     plt.plot(xGrid,dxPi)
     
