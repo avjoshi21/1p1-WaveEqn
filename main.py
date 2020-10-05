@@ -17,13 +17,13 @@ def findNearest(array, value,startIdx=0):
             if(abs(prevVal-value) < bestValue):
                 # print('found better one')
                 bestValue = abs(prevVal-value)
-                bestIdx = prevIdx;
+                bestIdx = prevIdx
             prevIdx -= 1
         if(nextIdx<len(array)):
             nextVal = array[nextIdx]
             if(abs(nextVal-value) < bestValue):
                 bestValue = abs(nextVal-value)
-                bestIdx = nextIdx;
+                bestIdx = nextIdx
             nextIdx += 1
 
     return (bestIdx,array[bestIdx])
@@ -47,6 +47,26 @@ def spatialDerivCalc(variableArray,delta):
         spatialDerivArray[count] = (nextVal - prevVal)/(2*delta)
     return spatialDerivArray
 
+def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
+    finalPi = copy.deepcopy(pi)
+    finalPsi = copy.deepcopy(psi)
+    finalPhi = copy.deepcopy(phi)
+
+    k1Pi = spatialDerivCalc(psi,deltaX)
+    k1Psi = spatialDerivCalc(pi,deltaX)
+    k1Phi = pi
+
+    k2Pi = spatialDerivCalc(psi + deltaT/2 * k1Psi,deltaX)
+    k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX)
+    k2Phi = pi + deltaT/2 * k1Pi
+
+    finalPi = finalPi + deltaT*k2Pi
+    finalPsi = finalPsi + deltaT*k2Psi
+    finalPhi = finalPhi + deltaT*k2Phi
+
+    return finalPi,finalPsi,finalPhi
+
+
 #performs a single rk4 step for an array of values. diffArrayFunc is a function passed that
 #computes the derivative (discretized or continuous) by accepting the grid and the target value it should check
 
@@ -57,16 +77,16 @@ def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
         y0 = val
         k1 = diffArrayFunc(count,**diffArrayFuncArgs)
         y1 = (y0 + delta/2 * k1)
-        y1Idx = findNearest(gridArray,y1)[0]
-        # y1Idx = findNearest(initialArray,y1,count)[0]
+        # y1Idx = findNearest(gridArray,y1)[0]
+        y1Idx = findNearest(initialArray,y1,count)[0]
         k2 = diffArrayFunc(y1Idx,**diffArrayFuncArgs)
         y2 = (y0 + delta/2 * k2)
-        y2Idx = findNearest(gridArray,y2)[0]
-        # y2Idx = findNearest(initialArray,y2,y1Idx)[0]
+        # y2Idx = findNearest(gridArray,y2)[0]
+        y2Idx = findNearest(initialArray,y2,y1Idx)[0]
         k3 = diffArrayFunc(y2Idx,**diffArrayFuncArgs)
         y3 = (y0 + delta * k3)
-        y3Idx = findNearest(gridArray,y3)[0]
-        # y3Idx = findNearest(initialArray,y3,y2Idx)[0]
+        # y3Idx = findNearest(gridArray,y3)[0]
+        y3Idx = findNearest(initialArray,y3,y2Idx)[0]
         k4 = diffArrayFunc(y3Idx,**diffArrayFuncArgs)
         y4 = y0 + (k1 + 2*k2+ 2*k3 + k4)*delta/6
         finalArray[count] = y0 + delta*k1
@@ -77,11 +97,11 @@ def rk4(initialArray,gridArray,delta,diffArrayFunc,**diffArrayFuncArgs):
 
 #grid setup
 hx = 0.1
-ht = 0.05
+ht = 0.01
 xLow = -5
 xHigh = 5
 tLow = 0
-tHigh = 10
+tHigh = 5
 xGrid = np.arange(xLow,xHigh+hx,hx)
 tGrid = np.arange(tLow,tHigh,ht)
 
@@ -119,40 +139,24 @@ for count,tVal in enumerate(tGrid):
     # if count == 1:
     #     plt.plot(xGrid,dxPi)
     
-    piArray[count+1] = rk4(piArray[count],xGrid,ht,derivCalc,type='Pi',dxPsi=dxPsi)
-    psiArray[count+1] = rk4 (psiArray[count],xGrid,ht,derivCalc,type='Psi',dxPi=dxPi)
-    # print(count)
-    phiArray[count+1] = rk4(phiArray[count],xGrid,ht,derivCalc,type='Phi',piArray=piArray[count])
+    piArray[count+1],psiArray[count+1],phiArray[count+1] = piPsiPhiRK4(piArray[count],psiArray[count],phiArray[count],ht,hx)
+    # phiArray[count+1] = phiRK4(phiArray[count],piArray[count],ht,hx)
+    # piArray[count+1] = rk4(piArray[count],xGrid,ht,derivCalc,type='Pi',dxPsi=dxPsi)
+    # psiArray[count+1] = rk4 (psiArray[count],xGrid,ht,derivCalc,type='Psi',dxPi=dxPi)
+    # # print(count)
+    # phiArray[count+1] = rk4(phiArray[count],xGrid,ht,derivCalc,type='Phi',piArray=piArray[count])
 
+print('Integration finished. Now plotting...............')
 for count,psiVals in enumerate(phiArray):
     fig = plt.figure(count)
     ax = plt.gca()
     plt.xlabel('x')
     plt.ylabel('Phi')
-    ax.set_ylim([0,np.max(phiArray)])
-    plt.plot(xGrid,psiVals,label="t="+str(tGrid[count]))
+    ax.set_ylim([-np.max(phiArray),np.max(phiArray)])
+    plt.plot(xGrid,psiVals,label="t={:.2f}".format(tGrid[count]))
     plt.legend()
-    plt.savefig('Images/frame_%04d.png' %count)
+    plt.savefig('Images/frame_{:04d}.png'.format(count))
     plt.close(fig)
-# plt.show()
 
-# y0=3.0
-# hVals = [0.8,0.2,0.1,0.02,0.01]
-# for h in hVals:
-#     trange = np.arange(0.0,2.0,h)
-#     ytrue = lambda tVals: 3 * np.exp(-2 * tVals)
-#     yVals = np.zeros(len(trange)+1,dtype=float)
-#     yGrid = np.linspace(0,2,10000)
-#     yVals[0]=3.0
-#     def diffFunc(y,yVal):
-#         # idx = findNearest(y,yVal)
-#         return -2.0 * yVal
-#     for count,i in enumerate(trange):
-#         yVals[count+1] = rk4([yVals[count]],yGrid,diffFunc,h)
-
-#     plt.plot(trange,yVals[:-1],'x-',label="h= "+str(h))
-# plt.plot(np.linspace(0,2,1000),ytrue(np.linspace(0,2,1000)),label="true solution")
-# plt.legend()
-# plt.show()
 
 
