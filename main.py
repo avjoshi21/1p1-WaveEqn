@@ -26,7 +26,7 @@ def spatialDerivCalc(variableArray,delta,order=2):
         paddedArray = np.pad(variableArray,2,mode='wrap')
         spatialDerivArray = np.zeros(variableArray.shape)
         for count,i in enumerate(variableArray):
-            paddedCount = count+1
+            paddedCount = count+2
             # p1=previous1st n2=next2nd
             p1Val = paddedArray[paddedCount-1]
             n1Val = paddedArray[paddedCount+1]
@@ -39,20 +39,20 @@ def spatialDerivCalc(variableArray,delta,order=2):
 
 def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
 
-    k1Pi = spatialDerivCalc(psi,deltaX)
-    k1Psi = spatialDerivCalc(pi,deltaX)
+    k1Pi = spatialDerivCalc(psi,deltaX,order=4)
+    k1Psi = spatialDerivCalc(pi,deltaX,order=4)
     k1Phi = pi
 
-    k2Pi = spatialDerivCalc(psi + deltaT/2 * k1Psi,deltaX)
-    k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX)
+    k2Pi = spatialDerivCalc(psi + deltaT/2 * k1Psi,deltaX,order=4)
+    k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX,order=4)
     k2Phi = pi + deltaT/2 * k1Pi
 
-    k3Pi = spatialDerivCalc(psi + deltaT/2 * k2Psi,deltaX)
-    k3Psi = spatialDerivCalc(pi + deltaT/2 * k2Pi,deltaX)
+    k3Pi = spatialDerivCalc(psi + deltaT/2 * k2Psi,deltaX,order=4)
+    k3Psi = spatialDerivCalc(pi + deltaT/2 * k2Pi,deltaX,order=4)
     k3Phi = pi + deltaT/2 * k2Pi
 
-    k4Pi = spatialDerivCalc(psi + deltaT * k3Psi,deltaX)
-    k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX)
+    k4Pi = spatialDerivCalc(psi + deltaT * k3Psi,deltaX,order=4)
+    k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX,order=4)
     k4Phi = pi + deltaT * k3Pi
 
     finalPi = pi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
@@ -69,14 +69,14 @@ if __name__ == "__main__":
     xLow = -2
     xHigh = 2
     tLow = 0
-    tHigh = 10
+    tHigh = 5
     xGrid = np.arange(xLow,xHigh+hx,hx)
     tGrid = np.arange(tLow,tHigh,ht)
 
     #initial values of the field phi and simulation variables psi and pi
     initialPhi = np.exp(-((xGrid-0.5)/0.5)**2)
     initialDtPhi = np.zeros(xGrid.shape)
-    initialDxPhi = spatialDerivCalc(initialPhi,hx)
+    initialDxPhi = spatialDerivCalc(initialPhi,hx,order=4)
 
     initialPsi = initialDxPhi
     initialPi = initialDtPhi
