@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import copy
-
+import time
 # #finds and returns index and value of the array element closest to parameter
 # def findNearest(array, value,startIdx=0):
 #     array = np.asarray(array)
@@ -104,17 +104,17 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
 
 
 #grid setup
-hx = 0.1
-ht = 0.01
-xLow = -5
-xHigh = 5
+hx = 0.01
+ht = 0.0025
+xLow = -2
+xHigh = 2
 tLow = 0
 tHigh = 5
 xGrid = np.arange(xLow,xHigh+hx,hx)
 tGrid = np.arange(tLow,tHigh,ht)
 
 #initial values of the field phi and simulation variables psi and pi
-initialPhi = np.exp(-((xGrid-1)/0.5)**2)
+initialPhi = np.exp(-((xGrid-0.5)/0.5)**2)
 initialDtPhi = np.zeros(xGrid.shape)
 initialDxPhi = spatialDerivCalc(initialPhi,hx)
 
@@ -140,7 +140,7 @@ piArray[0] = initialPi
 #         return kwargs['dxPi'][idx]
 #     elif(kwargs['type']=='Phi'):
 #         return kwargs['piArray'][idx]
-
+t1 = time.perf_counter()
 for count,tVal in enumerate(tGrid):
     # dxPsi = spatialDerivCalc(psiArray[count],hx)
     # dxPi = spatialDerivCalc(piArray[count],hx)
@@ -153,8 +153,8 @@ for count,tVal in enumerate(tGrid):
     # psiArray[count+1] = rk4 (psiArray[count],xGrid,ht,derivCalc,type='Psi',dxPi=dxPi)
     # # print(count)
     # phiArray[count+1] = rk4(phiArray[count],xGrid,ht,derivCalc,type='Phi',piArray=piArray[count])
-
-print('Integration finished. Now plotting...............')
+t2 = time.perf_counter()
+print('Integration finished in {:.4f} seconds. Now plotting...............'.format(t2-t1))
 for count,psiVals in enumerate(phiArray):
     fig = plt.figure(count)
     ax = plt.gca()
