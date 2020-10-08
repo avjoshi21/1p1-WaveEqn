@@ -29,28 +29,28 @@ import time
 #     return (bestIdx,array[bestIdx])
 
 #second order derivative calculator. returns entire array with derivative at each point.
-def spatialDerivCalc(variableArray,delta):
-    spatialDerivArray = np.zeros(variableArray.shape)
-    prevVal=0
-    # currVal=0
-    nextVal=0
-    for count,i in enumerate(variableArray):
-        if (count==0):
-            prevVal = variableArray[-1]
-        else:
-            prevVal = variableArray[count-1]
-        if (count==len(variableArray)-1):
-            nextVal = variableArray[0]
-        else:
-            nextVal = variableArray[count+1]
-        # currVal = i
-        spatialDerivArray[count] = (nextVal - prevVal)/(2*delta)
+def spatialDerivCalc(variableArray,delta,order=2):
+    if order==2:
+        paddedArray = np.pad(variableArray,1,mode='wrap')
+        spatialDerivArray = np.zeros(variableArray.shape)
+        prevVal=0
+        # currVal=0
+        nextVal=0
+        for count,i in enumerate(variableArray):
+            paddedCount = count+1
+            prevVal = paddedArray[paddedCount-1]
+            nextVal = paddedArray[paddedCount+1]
+            # currVal = i
+            spatialDerivArray[count] = (nextVal - prevVal)/(2*delta)
+    elif order==4:
+        1;
+    
     return spatialDerivArray
 
 def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
-    finalPi = copy.deepcopy(pi)
-    finalPsi = copy.deepcopy(psi)
-    finalPhi = copy.deepcopy(phi)
+    # finalPi = copy.deepcopy(pi)
+    # finalPsi = copy.deepcopy(psi)
+    # finalPhi = copy.deepcopy(phi)
 
     k1Pi = spatialDerivCalc(psi,deltaX)
     k1Psi = spatialDerivCalc(pi,deltaX)
@@ -68,9 +68,9 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
     k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX)
     k4Phi = pi + deltaT * k3Pi
 
-    finalPi = finalPi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
-    finalPsi = finalPsi + 1/6*deltaT*(k1Psi + 2*k2Psi + 2*k3Psi + k4Psi)
-    finalPhi = finalPhi + 1/6*deltaT*(k1Phi + 2*k2Phi + 2*k3Phi + k4Phi)
+    finalPi = pi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
+    finalPsi = psi + 1/6*deltaT*(k1Psi + 2*k2Psi + 2*k3Psi + k4Psi)
+    finalPhi = phi + 1/6*deltaT*(k1Phi + 2*k2Phi + 2*k3Phi + k4Phi)
 
     return finalPi,finalPsi,finalPhi
 
