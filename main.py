@@ -37,22 +37,22 @@ def spatialDerivCalc(variableArray,delta,order=2):
     
     return spatialDerivArray
 
-def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
+def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX,order=2):
 
-    k1Pi = spatialDerivCalc(psi,deltaX,order=4)
-    k1Psi = spatialDerivCalc(pi,deltaX,order=4)
+    k1Pi = spatialDerivCalc(psi,deltaX,order)
+    k1Psi = spatialDerivCalc(pi,deltaX,order)
     k1Phi = pi
 
-    k2Pi = spatialDerivCalc(psi + deltaT/2 * k1Psi,deltaX,order=4)
-    k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX,order=4)
+    k2Pi = spatialDerivCalc(psi + deltaT/2 * k1Psi,deltaX,order)
+    k2Psi = spatialDerivCalc(pi + deltaT/2 * k1Pi,deltaX,order)
     k2Phi = pi + deltaT/2 * k1Pi
 
-    k3Pi = spatialDerivCalc(psi + deltaT/2 * k2Psi,deltaX,order=4)
-    k3Psi = spatialDerivCalc(pi + deltaT/2 * k2Pi,deltaX,order=4)
+    k3Pi = spatialDerivCalc(psi + deltaT/2 * k2Psi,deltaX,order)
+    k3Psi = spatialDerivCalc(pi + deltaT/2 * k2Pi,deltaX,order)
     k3Phi = pi + deltaT/2 * k2Pi
 
-    k4Pi = spatialDerivCalc(psi + deltaT * k3Psi,deltaX,order=4)
-    k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX,order=4)
+    k4Pi = spatialDerivCalc(psi + deltaT * k3Psi,deltaX,order)
+    k4Psi = spatialDerivCalc(pi + deltaT * k3Pi,deltaX,order)
     k4Phi = pi + deltaT * k3Pi
 
     finalPi = pi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
@@ -62,21 +62,22 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX):
     return finalPi,finalPsi,finalPhi
 
 
-if __name__ == "__main__":
-    #grid setup
-    hx = 0.01
-    ht = 0.0025
-    xLow = -2
-    xHigh = 2
-    tLow = 0
-    tHigh = 5
-    xGrid = np.arange(xLow,xHigh+hx,hx)
-    tGrid = np.arange(tLow,tHigh,ht)
+def runSimulation(**simPars):
+        #grid setup
+    # hx = 0.01
+    # ht = 0.0025
+    # xLow = -2
+    # xHigh = 2
+    # tLow = 0
+    # tHigh = 5
+
+    xGrid = np.arange(simPars['xLow'],simPars['xHigh'],simPars['hx'])
+    tGrid = np.arange(simPars['tLow'],simPars['tHigh'],simPars['ht'])
 
     #initial values of the field phi and simulation variables psi and pi
     initialPhi = np.exp(-((xGrid-0.5)/0.5)**2)
     initialDtPhi = np.zeros(xGrid.shape)
-    initialDxPhi = spatialDerivCalc(initialPhi,hx,order=4)
+    initialDxPhi = spatialDerivCalc(initialPhi,simPars['hx'],order=simPars['spatialDerivOrder'])
 
     initialPsi = initialDxPhi
     initialPi = initialDtPhi
@@ -93,17 +94,78 @@ if __name__ == "__main__":
 
     t1 = time.perf_counter()
     for count,tVal in enumerate(tGrid):
-        piArray[count+1],psiArray[count+1],phiArray[count+1] = piPsiPhiRK4(piArray[count],psiArray[count],phiArray[count],ht,hx)
+        piArray[count+1],psiArray[count+1],phiArray[count+1] = piPsiPhiRK4(piArray[count],psiArray[count],phiArray[count],simPars['ht'],simPars['hx'],simPars['spatialDerivOrder'])
 
     t2 = time.perf_counter()
-    print('Integration finished in {:.4f} seconds. Now plotting...............'.format(t2-t1))
-    for count,psiVals in enumerate(phiArray[::5]):
-        fig = plt.figure(count)
-        ax = plt.gca()
-        plt.xlabel('x')
-        plt.ylabel('Phi')
-        ax.set_ylim([-np.max(phiArray),np.max(phiArray)])
-        plt.plot(xGrid,psiVals,label="t={:.2f}".format(tGrid[count]))
-        plt.legend()
-        plt.savefig('Images/frame_{:04d}.png'.format(count))
-        plt.close(fig)
+    print('Integration finished in {:.4f} seconds.'.format(t2-t1))
+
+    if(simPars['toPlot']):
+        print('Plotting......')
+        skipVal = max(len(phiArray)//(400),1)
+        for count,psiVals in enumerate(phiArray[::skipVal]):
+            fig = plt.figure(count)
+            ax = plt.gca()
+            plt.xlabel('x')
+            plt.ylabel(r'$\Phi$')
+            ax.set_ylim([-np.max(phiArray),np.max(phiArray)])
+            plt.plot(xGrid,psiVals,label="t={:.2f}".format(tGrid[count*skipVal]))
+            plt.legend()
+            plt.savefig('Images/frame_{:04d}.png'.format(count))
+            plt.close(fig)
+
+
+    return phiArray
+
+def convergenceTest(**simPars):
+    if(simPars['convergenceOfT']):
+        # xGrid = np.arange(simPars['xLow'],simPars['xHigh'],simPars['hx'])
+
+        # truePhi = np.exp(-((xGrid-0.5)/0.5)**2)
+
+        htValues = [0.01,0.005,0.0025,0.00125]
+        phiSolutions = []
+        # errorsat4 = []
+        
+        for htVal in htValues:
+            simPars['ht']=htVal
+            # tGrid = np.arange(simPars['tLow'],simPars['tHigh'],simPars['ht'])
+
+            phiArr = runSimulation(**simPars)
+            sol = phiArr[-1]
+            phiSolutions.append(sol)
+        
+        L1NormDifference = np.sum(np.abs(np.diff(phiSolutions,axis=0)),axis=-1)
+        print(L1NormDifference)
+        # return phiSolutions
+        convergenceFactor = []
+        for i in range(len(L1NormDifference)-1):
+            convergenceFactor.append(L1NormDifference[i]/L1NormDifference[i+1])
+
+        return convergenceFactor
+
+        # fig,ax = plt.subplots(nrows=2,ncols=1)
+        # for count,i in enumerate(solutionsAt4):
+        #     ax[0].plot(xGrid,i,label="ht = {}".format(htValues[count]))
+        # ax[0].legend()
+        # ax[1].loglog(htValues,errorsat4)
+        # plt.show()
+
+if __name__ == "__main__":
+
+    simPars = {
+        'hx':0.01,'ht':0.025,
+        'xLow':-2,'xHigh':2,
+        'tLow':0,'tHigh':10,
+        'toPlot':False,
+        'spatialDerivOrder':2
+        }
+
+    cFs = convergenceTest(**simPars,convergenceOfT=True)
+ 
+    # hx = 0.01
+    # ht = 0.0025
+    # xLow = -2
+    # xHigh = 2
+    # tLow = 0
+    # tHigh = 5
+    
