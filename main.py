@@ -122,7 +122,7 @@ def convergenceTest(**simPars):
 
         # truePhi = np.exp(-((xGrid-0.5)/0.5)**2)
 
-        htValues = [0.01,0.005,0.0025,0.00125]
+        htValues = [0.01,0.005,0.0025,0.00125,0.000625,0.0003125]
         phiSolutions = []
         # errorsat4 = []
         
@@ -137,30 +137,71 @@ def convergenceTest(**simPars):
         L1NormDifference = np.sum(np.abs(np.diff(phiSolutions,axis=0)),axis=-1)
         print(L1NormDifference)
         # return phiSolutions
-        convergenceFactor = []
+        convergenceFactors = []
         for i in range(len(L1NormDifference)-1):
-            convergenceFactor.append(L1NormDifference[i]/L1NormDifference[i+1])
+            convergenceFactors.append(L1NormDifference[i]/L1NormDifference[i+1])
 
-        return convergenceFactor
 
-        # fig,ax = plt.subplots(nrows=2,ncols=1)
-        # for count,i in enumerate(solutionsAt4):
-        #     ax[0].plot(xGrid,i,label="ht = {}".format(htValues[count]))
-        # ax[0].legend()
-        # ax[1].loglog(htValues,errorsat4)
-        # plt.show()
+        fig,ax = plt.subplots(1,2,figsize=(10,5))
+        ax[0].loglog(htValues[:-1],L1NormDifference,'rx',label='simulation L1 norm')
+        ax[0].loglog(htValues,(10**5.5)*np.array(htValues)**4,label=r'$\Delta t^4$')
+        ax[0].set_xlabel(r'Largest $\Delta t$ in calculation')
+        ax[0].legend()
+        ax[1].set_xlabel(r'Largest $\Delta t$ in calculation')
+        ax[1].plot(htValues[:-2],convergenceFactors,'rx',label="convergence factor")
+        ax[1].axhline((htValues[0]/htValues[1])**4,label=r'${}^4$'.format(int(htValues[0]/htValues[1])))
+        ax[1].legend()
+        # plt.tight_layout(True)
+        plt.show()
+
+    if(simPars['convergenceOfX']):
+        # xGrid = np.arange(simPars['xLow'],simPars['xHigh'],simPars['hx'])
+
+        # truePhi = np.exp(-((xGrid-0.5)/0.5)**2)
+
+        hxValues = [0.02,0.01,0.005,0.0025,0.00125]
+        phiSolutions = []
+        # errorsat4 = []
+        
+        for count,hxVal in enumerate(hxValues):
+            simPars['hx']=hxVal
+
+            phiArr = runSimulation(**simPars)
+            sol = phiArr[-1]
+            phiSolutions.append(sol[::int(2**(count))])
+        
+        L1NormDifference = np.sum(np.abs(np.diff(phiSolutions,axis=0)),axis=-1)
+        print(L1NormDifference)
+        # return phiSolutions
+        convergenceFactors = []
+        for i in range(len(L1NormDifference)-1):
+            convergenceFactors.append(L1NormDifference[i]/L1NormDifference[i+1])
+
+
+        fig,ax = plt.subplots(1,2,figsize=(10,5))
+        ax[0].loglog(hxValues[:-1],L1NormDifference,'rx',label='simulation L1 norm')
+        multiplicativeFactor = L1NormDifference[-1] / hxValues[-2]**simPars['spatialDerivOrder']
+        ax[0].loglog(hxValues,multiplicativeFactor*np.array(hxValues)**simPars['spatialDerivOrder'],label=r'$\Delta x^{}$'.format(simPars['spatialDerivOrder']))
+        ax[0].set_xlabel(r'Largest $\Delta x$ in calculation')
+        ax[0].legend()
+        ax[1].plot(hxValues[:-2],convergenceFactors,'rx',label="convergence factor")
+        ax[1].axhline((hxValues[1]/hxValues[0])**simPars['spatialDerivOrder'],label="r${}^{}$".format(int(hxValues[1]/hxValues[0]),simPars['spatialDerivOrder']))
+        ax[1].set_xlabel(r'Largest $\Delta x$ in calculation')
+        plt.show()
+
+    return convergenceFactors
 
 if __name__ == "__main__":
 
     simPars = {
-        'hx':0.01,'ht':0.025,
+        'hx':0.01,'ht':0.000625,
         'xLow':-2,'xHigh':2,
-        'tLow':0,'tHigh':10,
+        'tLow':0,'tHigh':5,
         'toPlot':False,
         'spatialDerivOrder':2
         }
 
-    cFs = convergenceTest(**simPars,convergenceOfT=True)
+    cFs = convergenceTest(**simPars,convergenceOfT=False,convergenceOfX=True)
  
     # hx = 0.01
     # ht = 0.0025
