@@ -141,6 +141,8 @@ def convergenceTest(**simPars):
         for i in range(len(L1NormDifference)-1):
             convergenceFactors.append(L1NormDifference[i]/L1NormDifference[i+1])
 
+        # return phiSolutions[-1],phiSolutions[-2]
+
 
         fig,ax = plt.subplots(1,2,figsize=(10,5))
         ax[0].loglog(htValues[:-1],L1NormDifference,'rx',label='simulation L1 norm')
@@ -202,7 +204,7 @@ if __name__ == "__main__":
         'spatialDerivOrder':2
         }
 
-    cFs = convergenceTest(**simPars,convergenceOfT=False,convergenceOfX=True)
+    cFs = convergenceTest(**simPars,convergenceOfT=True,convergenceOfX=False)
  
     # hx = 0.01
     # ht = 0.0025
