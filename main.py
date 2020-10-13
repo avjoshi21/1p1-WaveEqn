@@ -185,8 +185,9 @@ def convergenceTest(**simPars):
         ax[0].set_xlabel(r'Largest $\Delta x$ in calculation')
         ax[0].legend()
         ax[1].plot(hxValues[:-2],convergenceFactors,'rx',label="convergence factor")
-        ax[1].axhline((hxValues[1]/hxValues[0])**simPars['spatialDerivOrder'],label="r${}^{}$".format(int(hxValues[1]/hxValues[0]),simPars['spatialDerivOrder']))
+        ax[1].axhline((hxValues[0]/hxValues[1])**simPars['spatialDerivOrder'],label=r'${}^{}$'.format(int(hxValues[0]/hxValues[1]),simPars['spatialDerivOrder']))
         ax[1].set_xlabel(r'Largest $\Delta x$ in calculation')
+        ax[1].legend()
         plt.show()
 
     return convergenceFactors
