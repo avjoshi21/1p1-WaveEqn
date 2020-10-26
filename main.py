@@ -8,7 +8,6 @@ import time
 def spatialDerivCalc(variableArray,delta,order=2):
     if order==2:
         paddedArray = np.pad(variableArray,1,mode='wrap')
-        paddedArray = np.pad(variableArray,1,mode='wrap')
         fDiffArray = np.diff(paddedArray[1:])
         bDiffArray = np.diff(paddedArray[::-1][1:])[::-1]
         spatialDerivArray = (fDiffArray - bDiffArray)/(2*delta)
@@ -37,6 +36,59 @@ def spatialDerivCalc(variableArray,delta,order=2):
     
     return spatialDerivArray
 
+def spatialSecondDerivCalc(variableArray,delta,order=2):
+    if order==2:
+        paddedArray = np.pad(variableArray,1,mode='wrap')
+        # # Faster numpy method
+        # fDiffArray = np.diff(paddedArray[1:])
+        # bDiffArray = np.diff(paddedArray[::-1][1:])[::-1]
+        # spatialDerivArray = (fDiffArray - bDiffArray)/(2*delta)
+
+        # Slower code that does the same thing as above
+        spatialDerivArray = np.zeros(variableArray.shape)
+        for count,i in enumerate(variableArray):
+            paddedCount = count+1
+            prevVal = paddedArray[paddedCount-1]
+            nextVal = paddedArray[paddedCount+1]
+            # currVal = i
+            spatialDerivArray[count] = (nextVal + prevVal - 2*i)/(delta**2)
+
+
+    elif order==4:
+        paddedArray = np.pad(variableArray,2,mode='wrap')
+        spatialDerivArray = np.zeros(variableArray.shape)
+        for count,i in enumerate(variableArray):
+            paddedCount = count+2
+            # p1=previous1st n2=next2nd
+            p1Val = paddedArray[paddedCount-1]
+            n1Val = paddedArray[paddedCount+1]
+            p2Val = paddedArray[paddedCount-2]
+            n2Val = paddedArray[paddedCount+2]
+            # currVal = i
+            spatialDerivArray[count] = (-n2Val + 16*n1Val -30*paddedArray[paddedCount] + 16*p1Val - p2Val)/(12* delta**2)
+    
+    return spatialDerivArray
+#rk4 integrator for only phi and pi defined (second derivative in space done)
+def piPhiRK4(pi,phi,deltaT,deltaX,order=2):
+
+    k1Pi = spatialSecondDerivCalc(phi,deltaX,order)
+    k1Phi = pi
+
+    k2Pi = spatialSecondDerivCalc(phi + deltaT/2 * k1Phi,deltaX,order)
+    k2Phi = pi + deltaT/2 * k1Pi
+
+    k3Pi = spatialSecondDerivCalc(phi + deltaT/2 * k2Phi,deltaX,order)
+    k3Phi = pi + deltaT/2 * k2Pi
+
+    k4Pi = spatialSecondDerivCalc(phi + deltaT * k3Phi,deltaX,order)
+    k4Phi = pi + deltaT * k3Pi
+
+    finalPi = pi + 1/6*deltaT*(k1Pi + 2*k2Pi + 2*k3Pi + k4Pi)
+    finalPhi = phi + 1/6*deltaT*(k1Phi + 2*k2Phi + 2*k3Phi + k4Phi)
+
+    return finalPi,finalPhi
+
+# peforms a single time step integration using the rk4 method
 def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX,order=2):
 
     k1Pi = spatialDerivCalc(psi,deltaX,order)
@@ -77,24 +129,25 @@ def runSimulation(**simPars):
     #initial values of the field phi and simulation variables psi and pi
     initialPhi = np.exp(-((xGrid-0.5)/0.5)**2)
     initialDtPhi = np.zeros(xGrid.shape)
-    initialDxPhi = spatialDerivCalc(initialPhi,simPars['hx'],order=simPars['spatialDerivOrder'])
+    # initialDxPhi = spatialDerivCalc(initialPhi,simPars['hx'],order=simPars['spatialDerivOrder'])
 
-    initialPsi = initialDxPhi
+    # initialPsi = initialDxPhi
     initialPi = initialDtPhi
 
     #set the arrays (t and x) of phi, psi and pi
     phiArray = np.zeros((len(tGrid)+1,len(xGrid)))
-    psiArray = np.zeros((len(tGrid)+1,len(xGrid)))
+    # psiArray = np.zeros((len(tGrid)+1,len(xGrid)))
     piArray = np.zeros((len(tGrid)+1,len(xGrid)))
 
 
     phiArray[0] = initialPhi
-    psiArray[0] = initialPsi
+    # psiArray[0] = initialPsi
     piArray[0] = initialPi
 
     t1 = time.perf_counter()
     for count,tVal in enumerate(tGrid):
-        piArray[count+1],psiArray[count+1],phiArray[count+1] = piPsiPhiRK4(piArray[count],psiArray[count],phiArray[count],simPars['ht'],simPars['hx'],simPars['spatialDerivOrder'])
+        # piArray[count+1],psiArray[count+1],phiArray[count+1] = piPsiPhiRK4(piArray[count],psiArray[count],phiArray[count],simPars['ht'],simPars['hx'],simPars['spatialDerivOrder'])
+        piArray[count+1],phiArray[count+1] = piPhiRK4(piArray[count],phiArray[count],simPars['ht'],simPars['hx'],simPars['spatialDerivOrder'])
 
     t2 = time.perf_counter()
     print('Integration finished in {:.4f} seconds.'.format(t2-t1))
@@ -197,15 +250,15 @@ def convergenceTest(**simPars):
 if __name__ == "__main__":
 
     simPars = {
-        'hx':0.01,'ht':0.000625,
+        'hx':0.01,'ht':0.0025,
         'xLow':-2,'xHigh':2,
         'tLow':0,'tHigh':5,
-        'toPlot':False,
+        'toPlot':True,
         'spatialDerivOrder':2
         }
 
-    cFs = convergenceTest(**simPars,convergenceOfT=True,convergenceOfX=False)
- 
+    # cFs = convergenceTest(**simPars,convergenceOfT=True,convergenceOfX=False)
+    runSimulation(**simPars)
     # hx = 0.01
     # ht = 0.0025
     # xLow = -2
