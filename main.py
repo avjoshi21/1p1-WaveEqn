@@ -116,7 +116,7 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX,order=2):
 
 
 def runSimulation(**simPars):
-    # # grid setup
+    # # grid setup (actual values are given in simPars)
     # hx = 0.01
     # ht = 0.0025
     # xLow = -2
@@ -172,13 +172,9 @@ def runSimulation(**simPars):
 
 def convergenceTest(**simPars):
     if(simPars['convergenceOfT']):
-        # xGrid = np.arange(simPars['xLow'],simPars['xHigh'],simPars['hx'])
-
-        # truePhi = np.exp(-((xGrid-0.5)/0.5)**2)
 
         htValues = [0.01,0.005,0.0025,0.00125,0.000625,0.0003125]
         phiSolutions = []
-        # errorsat4 = []
         
         for htVal in htValues:
             simPars['ht']=htVal
@@ -190,12 +186,10 @@ def convergenceTest(**simPars):
         
         L1NormDifference = np.sum(np.abs(np.diff(phiSolutions,axis=0)),axis=-1)
         print(L1NormDifference)
-        # return phiSolutions
+
         convergenceFactors = []
         for i in range(len(L1NormDifference)-1):
             convergenceFactors.append(L1NormDifference[i]/L1NormDifference[i+1])
-
-        # return phiSolutions[-1],phiSolutions[-2]
 
 
         fig,ax = plt.subplots(1,2,figsize=(10,5))
@@ -211,13 +205,10 @@ def convergenceTest(**simPars):
         plt.show()
 
     if(simPars['convergenceOfX']):
-        # xGrid = np.arange(simPars['xLow'],simPars['xHigh'],simPars['hx'])
-
-        # truePhi = np.exp(-((xGrid-0.5)/0.5)**2)
 
         hxValues = [0.02,0.01,0.005,0.0025,0.00125]
         phiSolutions = []
-        # errorsat4 = []
+
         
         for count,hxVal in enumerate(hxValues):
             simPars['hx']=hxVal
@@ -228,7 +219,6 @@ def convergenceTest(**simPars):
         
         L1NormDifference = np.sum(np.abs(np.diff(phiSolutions,axis=0)),axis=-1)
         print(L1NormDifference)
-        # return phiSolutions
         convergenceFactors = []
         for i in range(len(L1NormDifference)-1):
             convergenceFactors.append(L1NormDifference[i]/L1NormDifference[i+1])
@@ -260,10 +250,4 @@ if __name__ == "__main__":
 
     # cFs = convergenceTest(**simPars,convergenceOfT=True,convergenceOfX=False)
     runSimulation(**simPars)
-    # hx = 0.01
-    # ht = 0.0025
-    # xLow = -2
-    # xHigh = 2
-    # tLow = 0
-    # tHigh = 5
-    
+
