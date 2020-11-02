@@ -68,6 +68,7 @@ def spatialSecondDerivCalc(variableArray,delta,order=2):
             spatialDerivArray[count] = (-n2Val + 16*n1Val -30*paddedArray[paddedCount] + 16*p1Val - p2Val)/(12* delta**2)
     
     return spatialDerivArray
+
 #rk4 integrator for only phi and pi defined (second derivative in space done)
 def piPhiRK4(pi,phi,deltaT,deltaX,order=2):
 
@@ -115,7 +116,7 @@ def piPsiPhiRK4(pi,psi,phi,deltaT,deltaX,order=2):
 
 
 def runSimulation(**simPars):
-        #grid setup
+    # # grid setup
     # hx = 0.01
     # ht = 0.0025
     # xLow = -2
@@ -127,7 +128,7 @@ def runSimulation(**simPars):
     tGrid = np.arange(simPars['tLow'],simPars['tHigh'],simPars['ht'])
 
     #initial values of the field phi and simulation variables psi and pi
-    initialPhi = np.exp(-((xGrid-0.5)/0.5)**2)
+    initialPhi = np.exp(-((xGrid-10))**2)
     initialDtPhi = np.zeros(xGrid.shape)
     # initialDxPhi = spatialDerivCalc(initialPhi,simPars['hx'],order=simPars['spatialDerivOrder'])
 
@@ -250,9 +251,9 @@ def convergenceTest(**simPars):
 if __name__ == "__main__":
 
     simPars = {
-        'hx':0.01,'ht':0.0025,
-        'xLow':-2,'xHigh':2,
-        'tLow':0,'tHigh':5,
+        'hx':0.1,'ht':0.05,
+        'xLow':0,'xHigh':20,
+        'tLow':0,'tHigh':15,
         'toPlot':True,
         'spatialDerivOrder':2
         }
